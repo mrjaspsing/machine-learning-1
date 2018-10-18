@@ -20,8 +20,8 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 	
 	static final String csvFile = "C:\\J\\Work\\CT\\BluemineRedesign\\dev\\machinelearning\\andrew-ml-course\\eclipseworkspace\\ex1data2.txt";
 
-	static double alpha = 0.001;
-	static int iterations = 10000;
+	static double alpha = 0.0000001;
+	static int iterations = 1000000;
 	//I achieved a cost = 0.1306868 for alpha=0.001 and iterations - 10000
 	//John Wittenauer got 0.13070336960771897
 
@@ -29,17 +29,22 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 		System.out.println("Starting execution ... ");
 
 		List<List<Double>> trainingSet = extractValuesFromCSV(csvFile);
-		System.out.println("Feature x1:\n "+trainingSet.get(0));
-		System.out.println("Feature x2:\n "+trainingSet.get(1));
-		System.out.println("Label y:\n "+trainingSet.get(2));
 		
-        List<Double> x1List = trainingSet.get(0);
+        List<Double> x0List = new ArrayList<>();
+		List<Double> x1List = trainingSet.get(0);
         List<Double> x2List = trainingSet.get(1);
         List<Double> yList = trainingSet.get(2);
+        x0List = initX0List(x1List.size());
         
-        x1List = normalizeFeature(x1List);
-        x2List = normalizeFeature(x2List);
-        yList = normalizeFeature(yList);
+        //System.out.println("Feature x0:\n "+x0List);
+        //System.out.println("Feature x1:\n "+x1List);
+		//System.out.println("Feature x2:\n "+x2List); 
+		//System.out.println("Label y:\n "+yList);
+
+		List<Double> normX0List = normalizeX0Feature(x0List);
+		List<Double> normX1List = normalizeFeature(x1List);
+        List<Double> normX2List = normalizeFeature(x2List);
+        List<Double> normYList = normalizeFeature(yList);
 
 		//IMP: It DOES NOT matter what values thetas are assigned to
 		double theta0 = 0;
@@ -52,6 +57,7 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 		List<Double> iterationList = new ArrayList<>();
 		List<Double> hypothesisList = new ArrayList<>();
         List<Double> thetas = new ArrayList<Double>();
+        
 		for(int j = 0; j < iterations; j++) {
 	        thetas = new ArrayList<>();
 			thetas.add(theta0);
@@ -67,14 +73,15 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 	        
 	        oldCost = newCost;
 	        
-	        theta0 = getNewTheta0(theta0, hypothesisList, yList);
-	        theta1 = getNewTheta1(theta1, hypothesisList, yList, x1List);
-	        theta2 = getNewTheta1(theta2, hypothesisList, yList, x2List);
+	        theta0 = getNewTheta1(theta0, hypothesisList, yList, x0List);
+	        theta1 = getNewTheta1(theta1, hypothesisList, yList, normX1List);
+	        theta2 = getNewTheta1(theta2, hypothesisList, yList, normX2List);
 
-	        System.out.println("Thetas: "+thetas);
-	        System.out.println("Hypothesis: "+hypothesisList);
-	        System.out.println("Cost: "+newCost);
+	        //System.out.println("Thetas: "+thetas);
+	        //System.out.println("Hypothesis: "+hypothesisList);
+	        //System.out.println("Cost: "+newCost);
 		}
+		
         System.out.println("Final thetas: "+thetas);
         final PlotLineChart1 demo = new PlotLineChart1("XY Series Demo", costsList, iterationList);
         demo.pack();
@@ -87,6 +94,34 @@ public class MultivariateLinRegGradDescWithFeatNorm {
         System.out.println("Exiting ... ");
 	}
 
+	private static List<Double> normalizeX0Feature(List<Double> x0List) {
+		List<Double> normalizedXList = new ArrayList<>();
+		Double mean = calculateMean(x0List);
+		Double max = Collections.max(x0List);
+		Double min = Collections.min(x0List);
+
+		for(Double val: x0List) {
+			Double newVal = (val - mean)/mean;
+			normalizedXList.add(newVal);
+		}
+		//System.out.println("Mean: "+mean);
+		//System.out.println("Max: "+max);
+		//System.out.println("Min: "+min);
+		//System.out.println("Normalized list: "+normalizedXList);
+		//System.out.println("Max in normalized list: "+Collections.max(normalizedXList));
+		//System.out.println("Min in normalized list: "+Collections.min(normalizedXList));
+		//System.out.println("");
+		return normalizedXList;
+	}
+
+	private static List<Double> initX0List(int size) {
+		List <Double> x0List = new ArrayList<>();
+		for(int i=0;i<size;i++) {
+			x0List.add((double) 1);
+		}
+		return x0List;
+	}
+
 	private static List<Double> normalizeFeature(List<Double> xList) {
 		List<Double> normalizedXList = new ArrayList<>();
 		Double mean = calculateMean(xList);
@@ -97,14 +132,14 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 			Double newVal = (val - mean)/sd;
 			normalizedXList.add(newVal);
 		}
-		System.out.println("Mean: "+mean);
-		System.out.println("SD: "+sd);
-		System.out.println("Max: "+max);
-		System.out.println("Min: "+min);
-		System.out.println("Normalized list: "+normalizedXList);
-		System.out.println("Max in normalized list: "+Collections.max(normalizedXList));
-		System.out.println("Min in normalized list: "+Collections.min(normalizedXList));
-		System.out.println("");
+//		System.out.println("Mean: "+mean);
+//		System.out.println("SD: "+sd);
+//		System.out.println("Max: "+max);
+//		System.out.println("Min: "+min);
+//		System.out.println("Normalized list: "+normalizedXList);
+//		System.out.println("Max in normalized list: "+Collections.max(normalizedXList));
+//		System.out.println("Min in normalized list: "+Collections.min(normalizedXList));
+//		System.out.println("");
 		return normalizedXList;
 	}
 	
@@ -158,6 +193,7 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 		for(int i = 0; i<size; i++) {
 			double hypothesis = hypothesisList.get(i);
 			double realValue = labelsList.get(i);
+		//	System.out.println("Cost between hypothesis="+hypothesis+" and label="+realValue);
 			double difference = hypothesis - realValue;
 			difference = difference * difference;
 			totalCost = totalCost + difference;
@@ -179,7 +215,9 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 	}
 
 	private static double calculateHypothesis(Double theta0, Double theta1, Double theta2, Double x1, Double x2) {
-		return theta0 + theta1*x1 + theta2*x2; 
+		double hypothesis = theta0 + theta1*x1 + theta2*x2;
+	//	System.out.println("For theta0="+theta0+", theta1="+theta1+", theta2="+theta1+", x1="+x1+" x2="+x2+" Hypothesis="+hypothesis);
+		return hypothesis; 
 	}
 
 	private static List<List<Double>> extractValuesFromCSV(String csvfile) {
