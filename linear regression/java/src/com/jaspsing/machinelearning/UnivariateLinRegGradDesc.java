@@ -37,7 +37,7 @@ public class UnivariateLinRegGradDesc {
 	// Mine
 	// Prediction of profit for 35k: 2913.8756
 	// Prediction of profit for 70k: 44607.415
-	static double alpha = 0.0003;
+	static double alpha = 0.0003; 
 
 	public static void main(String[] args) {
 		System.out.println("Starting execution ... ");
