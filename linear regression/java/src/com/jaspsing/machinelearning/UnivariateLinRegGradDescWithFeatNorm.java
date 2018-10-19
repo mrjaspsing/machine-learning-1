@@ -57,7 +57,8 @@ public class UnivariateLinRegGradDescWithFeatNorm {
 				Final thetas: [-3.895780878311844, 1.1930336441895926]
 			
 	*/
-	static double alpha = 0.1;
+	static double alpha = 0.01;
+	static int iterations = 10000;
 
 	public static void main(String[] args) {
 		System.out.println("Starting execution ... ");
@@ -70,7 +71,6 @@ public class UnivariateLinRegGradDescWithFeatNorm {
         List<Double> xList = trainingSet.get(0);
         
         xList = normalizeFeature(xList);
-		int iterations = 1000;
 
 		//IMP: It DOES NOT matter what values thetas are assigned to
 		double theta0 = 0;
@@ -98,7 +98,10 @@ public class UnivariateLinRegGradDescWithFeatNorm {
 	        theta0 = getNewTheta0(theta0, hypothesisList, labelsList);
 	        theta1 = getNewTheta1(theta1, hypothesisList, labelsList, xList);
 		}
-        System.out.println("Final thetas: "+thetas);
+		System.out.println("Normalized Feature x:\n "+ xList);
+		System.out.println("Label y:\n "+trainingSet.get(1));
+		System.out.println("Final thetas: "+thetas);
+		System.out.println("Final cost: "+newCost);
         final PlotLineChart demo = new PlotLineChart("XY Series Demo", costsList, iterationList);
         demo.pack();
         RefineryUtilities.centerFrameOnScreen(demo);
@@ -116,12 +119,12 @@ public class UnivariateLinRegGradDescWithFeatNorm {
 			Double newVal = (val - mean)/(max-min);
 			normalizedXList.add(newVal);
 		}
-		System.out.println("Mean: "+mean);
-		System.out.println("Max: "+max);
-		System.out.println("Min: "+min);
-		System.out.println("Normalized list: "+normalizedXList);
-		System.out.println("Max in normalized list: "+Collections.max(normalizedXList));
-		System.out.println("Min in normalized list: "+Collections.min(normalizedXList));
+//		System.out.println("Mean: "+mean);
+//		System.out.println("Max: "+max);
+//		System.out.println("Min: "+min);
+//		System.out.println("Normalized list: "+normalizedXList);
+//		System.out.println("Max in normalized list: "+Collections.max(normalizedXList));
+//		System.out.println("Min in normalized list: "+Collections.min(normalizedXList));
 		return normalizedXList;
 	}
 

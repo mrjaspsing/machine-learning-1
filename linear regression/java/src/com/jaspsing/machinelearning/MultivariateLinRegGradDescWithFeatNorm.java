@@ -20,31 +20,39 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 	
 	static final String csvFile = "C:\\J\\Work\\CT\\BluemineRedesign\\dev\\machinelearning\\andrew-ml-course\\eclipseworkspace\\ex1data2.txt";
 
-	static double alpha = 0.0000001;
-	static int iterations = 1000000;
-	//I achieved a cost = 0.1306868 for alpha=0.001 and iterations - 10000
+	static double alpha = 0.001;
+	static int iterations = 10000;
+	//I achieved
+	// Cost: 0.13190441075956746a cost = 0.1306868 for alpha=0.0003 and iterations - 100,000
 	//John Wittenauer got 0.13070336960771897
-
+	
+	/* BEST CASE: 
+		static double alpha = 0.001;
+		static int iterations = 10000;
+		NORMAL EQN Thetas: [[89597.9095428 ], [  139.21067402], [-8738.01911233]]
+		My Thetas with x1 and x2 normed: [89367.83930841243, 139.1821806711374, -8684.915315652093]
+		VERY CLOSE!!!
+		Even though for these thetas cost is VERY high, it is still thetas that give optimal cost value 
+		thus this isnt the best model to predict values!!!
+	*/
 	public static void main(String[] args) {
 		System.out.println("Starting execution ... ");
 
 		List<List<Double>> trainingSet = extractValuesFromCSV(csvFile);
 		
-        List<Double> x0List = new ArrayList<>();
 		List<Double> x1List = trainingSet.get(0);
-        List<Double> x2List = trainingSet.get(1);
+		List<Double> x2List = trainingSet.get(1);
         List<Double> yList = trainingSet.get(2);
-        x0List = initX0List(x1List.size());
-        
-        //System.out.println("Feature x0:\n "+x0List);
-        //System.out.println("Feature x1:\n "+x1List);
-		//System.out.println("Feature x2:\n "+x2List); 
-		//System.out.println("Label y:\n "+yList);
-
-		List<Double> normX0List = normalizeX0Feature(x0List);
-		List<Double> normX1List = normalizeFeature(x1List);
+        List<Double> x0List = initX0List(x1List.size());
+        List<Double> normX1List = normalizeFeature(x1List);
         List<Double> normX2List = normalizeFeature(x2List);
-        List<Double> normYList = normalizeFeature(yList);
+        
+        printRanges(x0List,x1List,x2List,yList);
+		
+//      List<Double> normYList = normalizeFeature(yList);
+//		List<Double> normX1List = x1List;
+//      List<Double> normX2List = x2List;
+        List<Double> normYList = yList;
 
 		//IMP: It DOES NOT matter what values thetas are assigned to
 		double theta0 = 0;
@@ -64,17 +72,21 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 	        thetas.add(theta1);
 	        thetas.add(theta2);
 	        
-	        hypothesisList = calculateAllHypothesis(thetas, trainingSet);
+	        //case 1: x1 is normalized; we should still use regular x1 to find hypothesis
+	        //normalized feature is mainly to converge cost and find best thetas 
+	        hypothesisList = calculateAllHypothesis(thetas, x1List, x2List);
 	        
+	        //case 1: x1 is normalized; use x1 for finding cost too; norm feat is only for GD calc of thetas 
 	        newCost = calculateTotalCost(hypothesisList, yList);
 	        //System.out.println("Total cost: "+newCost+" delta: "+ (((newCost-oldCost)))+" "+" delta %: "+ (((newCost-oldCost)/oldCost)*100)+"%");
 	        costsList.add(newCost);
 	        iterationList.add((double) j);
 	        
 	        oldCost = newCost;
-	        
 	        theta0 = getNewTheta1(theta0, hypothesisList, yList, x0List);
+	        //case 1: since x1 is normalized, use it to find theta1
 	        theta1 = getNewTheta1(theta1, hypothesisList, yList, normX1List);
+	        //case 2: since x2 is normalized, use it to find theta1
 	        theta2 = getNewTheta1(theta2, hypothesisList, yList, normX2List);
 
 	        //System.out.println("Thetas: "+thetas);
@@ -92,6 +104,18 @@ public class MultivariateLinRegGradDescWithFeatNorm {
         System.out.println("Hypothesis: "+hypothesisList);
         System.out.println("Cost: "+newCost);
         System.out.println("Exiting ... ");
+	}
+
+	private static void printRanges(List<Double> x0List, List<Double> x1List, List<Double> x2List,
+			List<Double> yList) {
+        System.out.println("x0 range: "+ Collections.min(x0List) +" - " + Collections.max(x0List));
+        System.out.println("x1 range: "+ Collections.min(x1List) +" - " + Collections.max(x1List));
+        List<Double> normX1List = normalizeFeature(x1List);
+        List<Double> normX2List = normalizeFeature(x2List);
+        System.out.println("New x1 range: "+ Collections.min(normX1List) +" - " + Collections.max(normX1List));
+        System.out.println("x2 range: "+ Collections.min(x2List) +" - " + Collections.max(x2List));
+        System.out.println("New x2 range: "+ Collections.min(normX2List) +" - " + Collections.max(normX2List));
+        System.out.println("y range: "+ Collections.min(yList) +" - " + Collections.max(yList));
 	}
 
 	private static List<Double> normalizeX0Feature(List<Double> x0List) {
@@ -176,17 +200,6 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 		return newTheta1;
 	}
 
-	private static double getNewTheta0(double theta0, List<Double> hypothesisList, List<Double> labelsList) {
-		double newTheta0 = 0;
-		int m = labelsList.size();
-		double totalDiff = 0;
-		for( int i = 0; i < m; i++ ) {
-			totalDiff = totalDiff + (hypothesisList.get(i) - labelsList.get(i));
-		}
-		newTheta0 = theta0 - ((alpha/m)*totalDiff);
-		return newTheta0;
-	}
-
 	private static double calculateTotalCost(List<Double> hypothesisList, List<Double> labelsList) {
 		double  totalCost = 0;
 		int size = hypothesisList.size();
@@ -201,11 +214,10 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 		return (totalCost)/(2*size);
 	}
 
-	private static List<Double> calculateAllHypothesis(List<Double> thetas, List<List<Double>> trainingSet) {
+	private static List<Double> calculateAllHypothesis(List<Double> thetas, List<Double> x1List, List<Double> x2List) {
 		List<Double> hypothesisList = new ArrayList<>();
-		List<Double> x1List = trainingSet.get(0);
-		List<Double> x2List = trainingSet.get(1);
-		
+        System.out.println("calculateAllHypothesis::x1 range: "+ Collections.min(x1List) +" - " + Collections.max(x1List));
+        System.out.println("calculateAllHypothesis::x2 range: "+ Collections.min(x2List) +" - " + Collections.max(x2List));
 		int size = x1List.size();
 		for(int i=0; i<size; i++) {
 			double hypothesis = calculateHypothesis(thetas.get(0), thetas.get(1), thetas.get(2), x1List.get(i), x2List.get(i));
@@ -216,7 +228,7 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 
 	private static double calculateHypothesis(Double theta0, Double theta1, Double theta2, Double x1, Double x2) {
 		double hypothesis = theta0 + theta1*x1 + theta2*x2;
-	//	System.out.println("For theta0="+theta0+", theta1="+theta1+", theta2="+theta1+", x1="+x1+" x2="+x2+" Hypothesis="+hypothesis);
+		System.out.println("For theta0="+theta0+", theta1="+theta1+", theta2="+theta2+", x1="+x1+" x2="+x2+" Hypothesis="+hypothesis);
 		return hypothesis; 
 	}
 
@@ -248,14 +260,6 @@ public class MultivariateLinRegGradDescWithFeatNorm {
 }
 
 class PlotLineChart1 extends ApplicationFrame {
-
-/**
- * A demonstration application showing an XY series containing a null value.
- *
- * @param title  the frame title.
- * @param iterationList 
- * @param costsList 
- */
 public PlotLineChart1(final String title, List<Double> costsList, List<Double> iterationList) {
 
     super(title);

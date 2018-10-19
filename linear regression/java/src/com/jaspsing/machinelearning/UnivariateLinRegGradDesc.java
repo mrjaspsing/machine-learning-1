@@ -6,6 +6,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.ApplicationFrame;
+import org.jfree.ui.RefineryUtilities;
+
 public class UnivariateLinRegGradDesc {
 	
 	static final String csvFile = "C:\\J\\Work\\CT\\BluemineRedesign\\dev\\machinelearning\\andrew-ml-course\\eclipseworkspace\\ex1data1.txt";
@@ -37,7 +46,9 @@ public class UnivariateLinRegGradDesc {
 	// Mine
 	// Prediction of profit for 35k: 2913.8756
 	// Prediction of profit for 70k: 44607.415
-	static double alpha = 0.0003; 
+	static double alpha = 0.01; 
+	static int iterations = 10000;
+	
 
 	public static void main(String[] args) {
 		System.out.println("Starting execution ... ");
@@ -46,49 +57,58 @@ public class UnivariateLinRegGradDesc {
 		System.out.println("Feature x:\n "+trainingSet.get(0));
 		System.out.println("Label y:\n "+trainingSet.get(1));
 		
-		int iterations = 100000;
 		//IMP: It DOES NOT matter what values thetas are assigned to
 		double theta0 = 0;
 		double theta1 = 0;
 		
 		double oldCost = 0;
 		double newCost = 0;
+		List<Double> costsList = new ArrayList<>();
+		List<Double> iterationList = new ArrayList<>();
 		
         List<String> thetas = new ArrayList<String>();
-//		for(int j = 0; j < iterations; j++) {
-//	        thetas = new ArrayList<>();
-//			thetas.add(String.valueOf(theta0));
-//	        thetas.add(String.valueOf(theta1));
-//	        
-//	        List<String> hypothesisList = calculateAllHypothesis(thetas, trainingSet);
-//	        //System.out.println("For thetas: "+thetas);
-//	        //System.out.println("Hypothesis list: "+hypothesisList);
-//	        List<String> labelsList = trainingSet.get(1);
-//	        List<String> xList = trainingSet.get(0);
-//	        
-//	        newCost = calculateTotalCost(hypothesisList, labelsList);
-//	        System.out.println("Total cost: "+newCost+" delta: "+ (((newCost-oldCost)))+" "+" delta %: "+ (((newCost-oldCost)/oldCost)*100)+"%");
-//	        
-//	        oldCost = newCost;
-//	        
-//	        theta0 = getNewTheta0(theta0, hypothesisList, labelsList);
-//	        theta1 = getNewTheta1(theta1, hypothesisList, labelsList, xList);
-//		}
+		for(int j = 0; j < iterations; j++) {
+	        thetas = new ArrayList<>();
+			thetas.add(String.valueOf(theta0));
+	        thetas.add(String.valueOf(theta1));
+	        
+	        List<String> hypothesisList = calculateAllHypothesis(thetas, trainingSet);
+	        List<String> labelsList = trainingSet.get(1);
+	        List<String> xList = trainingSet.get(0);
+	        
+	        newCost = calculateTotalCost(hypothesisList, labelsList);
+	        costsList.add(newCost);
+	        iterationList.add((double)j);
+
+	        //System.out.println("Total cost: "+newCost+" delta: "+ (((newCost-oldCost)))+" "+" delta %: "+ (((newCost-oldCost)/oldCost)*100)+"%");
+	        
+	        oldCost = newCost;
+	        
+	        theta0 = getNewTheta0(theta0, hypothesisList, labelsList);
+	        theta1 = getNewTheta1(theta1, hypothesisList, labelsList, xList);
+		}
+        System.out.println("Final cost: "+newCost);
         System.out.println("Final thetas: "+thetas);
-        thetas.add(String.valueOf("-3.630291"));
-        thetas.add(String.valueOf("1.166362"));
-        float predict1 = predictValues((float) 3.5, thetas);
-        float predict2 = predictValues((float) 7, thetas);
-        System.out.println("Prediction of profit for 35k: " + predict1);
-        System.out.println("Prediction of profit for 70k: " + predict2);
+        final PlotLineChart1 demo = new PlotLineChart1("XY Series Demo", costsList, iterationList);
+        demo.pack();
+        RefineryUtilities.centerFrameOnScreen(demo);
+        demo.setVisible(true);
+
+        // Predictions
+//        thetas.add(String.valueOf("-3.630291"));
+//        thetas.add(String.valueOf("1.166362"));
+//        float predict1 = predictValues((float) 3.5, thetas);
+//        float predict2 = predictValues((float) 7, thetas);
+//        System.out.println("Prediction of profit for 35k: " + predict1);
+//        System.out.println("Prediction of profit for 70k: " + predict2);
         
-        thetas = new ArrayList<>();
-        thetas.add(String.valueOf("-3.877966378672785"));
-        thetas.add(String.valueOf("1.1912439998616475"));
-        predict1 = predictValues((float) 3.5, thetas);
-        predict2 = predictValues((float) 7, thetas);
-        System.out.println("Prediction of profit for 35k: " + predict1);
-        System.out.println("Prediction of profit for 70k: " + predict2);
+//        thetas = new ArrayList<>();
+//        thetas.add(String.valueOf("-3.877966378672785"));
+//        thetas.add(String.valueOf("1.1912439998616475"));
+//        predict1 = predictValues((float) 3.5, thetas);
+//        predict2 = predictValues((float) 7, thetas);
+//        System.out.println("Prediction of profit for 35k: " + predict1);
+//        System.out.println("Prediction of profit for 70k: " + predict2);
         System.out.println("Exiting ... ");
 	}
 
